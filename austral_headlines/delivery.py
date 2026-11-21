@@ -48,7 +48,7 @@ def _email(text: str, subject: str) -> None:
     msg = EmailMessage()
     msg["Subject"], msg["From"], msg["To"] = subject, user, to
     msg.set_content(text)
-    with smtplib.SMTP(host, int(os.environ.get("SMTP_PORT", "587")), timeout=30) as s:
+    with smtplib.SMTP(host, int(os.environ.get("SMTP_PORT", "").strip() or "587"), timeout=30) as s:
         s.starttls()
         s.login(user, os.environ.get("SMTP_PASSWORD", ""))
         s.send_message(msg)

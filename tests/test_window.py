@@ -68,3 +68,14 @@ def test_local_date_crossing_midnight_utc():
     # 2026-11-21 00:30 UTC is still Friday 21:30 in Montevideo
     w = compute_window(RUNS, at=utc("2026-11-21 00:30"))
     assert w.now_local.day == 20 and w.slot == "18:00"
+
+
+def test_empty_env_vars_fall_back_to_defaults(monkeypatch):
+    # GitHub Actions passes unset `vars.*` as empty strings
+    from austral_headlines.config import DEFAULT_MODEL, load_settings
+
+    monkeypatch.setenv("ANTHROPIC_MODEL", "")
+    monkeypatch.setenv("ANTHROPIC_FALLBACKS", "")
+    monkeypatch.setenv("OUTPUT_DIR", "")
+    s = load_settings()
+    assert s.model == DEFAULT_MODEL and s.fallbacks == "default" and s.output_dir.name == "output"

@@ -66,7 +66,7 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     return Settings(
         raw=raw,
         sources=sources,
-        model=os.environ.get("ANTHROPIC_MODEL", DEFAULT_MODEL),
-        fallbacks=os.environ.get("ANTHROPIC_FALLBACKS", "default").strip().lower(),
-        output_dir=Path(os.environ.get("OUTPUT_DIR", ROOT / "output")),
+        model=os.environ.get("ANTHROPIC_MODEL", "").strip() or DEFAULT_MODEL,
+        fallbacks=os.environ.get("ANTHROPIC_FALLBACKS", "").strip().lower() or "default",
+        output_dir=Path(os.environ.get("OUTPUT_DIR", "").strip() or ROOT / "output"),
     )
