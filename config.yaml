@@ -1,0 +1,259 @@
+# Austral Research – breaking-news headlines configuration.
+# Edit topics, tickers and sources here. Secrets go in .env, never here.
+
+timezone: America/Montevideo
+
+# Scheduled runs (local time) and how many hours back each one looks.
+runs:
+  "08:00": 5     # "last 4-5 h" -> 5 h
+  "10:00": 2
+  "12:00": 2
+  "15:00": 3
+  "18:00": 3
+
+# A scheduled (non --now) invocation only runs if it is within this many
+# minutes of a slot; otherwise it exits without doing anything.
+slot_tolerance_minutes: 60
+# Allow published timestamps up to this many minutes in the "future"
+# (clock skew between our machine and the publisher).
+future_skew_minutes: 5
+
+max_headlines: 15
+max_candidates_for_llm: 150
+
+http:
+  timeout_seconds: 12
+  max_page_bytes: 800000
+  user_agent: "Mozilla/5.0 (compatible; AustralHeadlinesBot/1.0; personal news digest)"
+
+search:
+  enabled: true
+  max_uses_per_query: 5
+  tool_type: web_search_20260209   # use web_search_20250305 for older models
+  # Search results are only accepted after the page metadata confirms a timestamp.
+  max_page_checks: 60
+
+topics:
+  - name: Energy & critical minerals
+    query: "oil, natural gas, LNG, OPEC, lithium, rare earths, uranium, critical minerals supply and policy news"
+  - name: Metals & commodities
+    query: "gold, silver, copper, aluminum market drivers (central banks, supply, mine disruptions, tariffs) and agricultural commodities (soybeans, corn, wheat, coffee, sugar) news"
+  - name: Macro & Fed
+    query: "Federal Reserve, interest rates, US inflation CPI PCE, jobs report, PMI, GDP, Treasury yields, central bank statements (ECB, BoJ, BoE, PBoC)"
+  - name: LatAm (Argentina, Brazil, Chile)
+    query: "Argentina, Brazil and Chile economic policy, central bank (BCRA, Banco Central do Brasil, Banco Central de Chile), inflation, FX, bonds, markets, macro data"
+  - name: Supply chains & geopolitics
+    query: "tariffs, sanctions, trade deals, shipping and logistics disruptions, export controls, wars and conflicts affecting markets"
+
+watchlist:
+  - {ticker: FCX,  name: "Freeport-McMoRan"}
+  - {ticker: SCCO, name: "Southern Copper"}
+  - {ticker: AEM,  name: "Agnico Eagle Mines"}
+  - {ticker: NEM,  name: "Newmont"}
+  - {ticker: B,    name: "Barrick Mining"}
+  - {ticker: VALE, name: "Vale"}
+  - {ticker: PBR,  name: "Petrobras"}
+  - {ticker: YPF,  name: "YPF"}
+  - {ticker: PAM,  name: "Pampa Energía"}
+  - {ticker: VIST, name: "Vista Energy"}
+
+# Investing.com items are kept only if they name one of these banks.
+investing_banks:
+  - Morgan Stanley
+  - Goldman Sachs
+  - JPMorgan
+  - J.P. Morgan
+  - BofA
+  - Bank of America
+  - Barclays
+  - Citi
+  - Citigroup
+  - UBS
+  - Deutsche Bank
+  - HSBC
+  - BNP Paribas
+  - Wells Fargo
+  - Jefferies
+  - RBC
+  - BMO
+  - Scotiabank
+  - Macquarie
+  - Bernstein
+  - Itaú BBA
+  - BTG Pactual
+  - Santander
+  - Credit Suisse
+  - Societe Generale
+  - Commerzbank
+  - Natixis
+  - Standard Chartered
+
+# Allowed sources. ONLY these domains are accepted (subdomains included).
+# priority: lower = better primary source when several outlets cover the same story.
+# naive_tz: timezone assumed for timestamps without offset; omit to discard them.
+sources:
+  - tag: RTRS
+    name: Reuters
+    domains: [reuters.com]
+    priority: 1
+    sitemaps:
+      - https://www.reuters.com/arc/outboundfeeds/news-sitemap/?outputType=xml
+  - tag: BBG
+    name: Bloomberg
+    domains: [bloomberg.com]
+    priority: 2
+    feeds:
+      - https://feeds.bloomberg.com/markets/news.rss
+      - https://feeds.bloomberg.com/economics/news.rss
+      - https://feeds.bloomberg.com/politics/news.rss
+  - tag: WSJ
+    name: Wall Street Journal
+    domains: [wsj.com]
+    priority: 3
+    feeds:
+      - https://feeds.a.dj.com/rss/RSSMarketsMain.xml
+      - https://feeds.a.dj.com/rss/RSSWorldNews.xml
+      - https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml
+  - tag: FT
+    name: Financial Times
+    domains: [ft.com]
+    priority: 4
+    feeds:
+      - https://www.ft.com/markets?format=rss
+      - https://www.ft.com/commodities?format=rss
+      - https://www.ft.com/world?format=rss
+  - tag: TE
+    name: TradingEconomics
+    domains: [tradingeconomics.com]
+    priority: 5
+    feeds:
+      - https://tradingeconomics.com/rss/news.aspx
+  - tag: CNBC
+    name: CNBC
+    domains: [cnbc.com]
+    priority: 6
+    feeds:
+      - https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114
+      - https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258
+      - https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664
+      - https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19836768
+  - tag: VALOR
+    name: Valor Econômico
+    domains: [valor.globo.com]
+    priority: 7
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://valor.globo.com/rss/valor
+  - tag: MINING
+    name: Mining.com
+    domains: [mining.com]
+    priority: 8
+    feeds:
+      - https://www.mining.com/feed/
+  - tag: OILPRICE
+    name: OilPrice.com
+    domains: [oilprice.com]
+    priority: 9
+    feeds:
+      - https://oilprice.com/rss/main
+  - tag: AXIOS
+    name: Axios
+    domains: [axios.com]
+    priority: 10
+    feeds:
+      - https://api.axios.com/feed/
+  - tag: SEMAFOR
+    name: Semafor
+    domains: [semafor.com]
+    priority: 11
+    feeds:
+      - https://www.semafor.com/rss.xml
+  - tag: FOXBIZ
+    name: Fox Business
+    domains: [foxbusiness.com]
+    priority: 12
+    feeds:
+      - https://moxie.foxbusiness.com/google-publisher/latest.xml
+      - https://moxie.foxbusiness.com/google-publisher/markets.xml
+      - https://moxie.foxbusiness.com/google-publisher/economy.xml
+  - tag: CNN
+    name: CNN
+    domains: [cnn.com]
+    priority: 13
+    feeds:
+      - http://rss.cnn.com/rss/money_latest.rss
+  - tag: FOLHA
+    name: Folha de S.Paulo
+    domains: [folha.uol.com.br]
+    priority: 14
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://feeds.folha.uol.com.br/mercado/rss091.xml
+      - https://feeds.folha.uol.com.br/mundo/rss091.xml
+  - tag: INVESTOR
+    name: The Investor
+    domains: [theinvestor.com.br]
+    priority: 15
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://theinvestor.com.br/feed/
+  - tag: INFOBAE
+    name: Infobae
+    domains: [infobae.com]
+    priority: 16
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.infobae.com/arc/outboundfeeds/rss/category/economia/
+  - tag: AMBITO
+    name: Ámbito
+    domains: [ambito.com]
+    priority: 17
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.ambito.com/rss/pages/economia.xml
+      - https://www.ambito.com/rss/pages/finanzas.xml
+      - https://www.ambito.com/rss/pages/negocios.xml
+  - tag: ECONOJOURNAL
+    name: EconoJournal
+    domains: [econojournal.com.ar]
+    priority: 18
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://econojournal.com.ar/feed/
+  - tag: SHALE24
+    name: Shale 24
+    domains: [shale24.com.ar]
+    priority: 19
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://shale24.com.ar/feed/
+  - tag: LMNEUQUEN
+    name: LM Neuquén
+    domains: [lmneuquen.com]
+    priority: 20
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.lmneuquen.com/rss/ultimas-noticias.xml
+  - tag: INVESTING
+    name: Investing.com
+    domains: [investing.com]
+    priority: 21
+    bank_calls_only: true
+    feeds:
+      - https://www.investing.com/rss/news_11.rss
+      - https://www.investing.com/rss/news_95.rss
+      - https://www.investing.com/rss/news_25.rss
+  - tag: ZH
+    name: ZeroHedge
+    domains: [zerohedge.com]
+    priority: 22
+    feeds:
+      - https://feeds.feedburner.com/zerohedge/feed

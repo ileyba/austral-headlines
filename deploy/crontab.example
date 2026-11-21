@@ -1,0 +1,21 @@
+# Austral headlines – Monday to Friday, Montevideo time.
+# Install with:  crontab -e   (then paste, adjusting paths)
+# CRON_TZ is supported by cronie (most Linux distros). If your cron ignores it,
+# use the UTC block below instead (Uruguay is UTC-3 all year, no DST).
+
+CRON_TZ=America/Montevideo
+APP=/opt/austral-headlines
+PY=/opt/austral-headlines/.venv/bin/python
+
+0 8  * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1
+0 10 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1
+0 12 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1
+0 15 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1
+0 18 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1
+
+# --- Equivalent in UTC (if CRON_TZ is not supported) ---
+# 0 11 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1   # 08:00 MVD
+# 0 13 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1   # 10:00 MVD
+# 0 15 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1   # 12:00 MVD
+# 0 18 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1   # 15:00 MVD
+# 0 21 * * 1-5  cd $APP && $PY main.py >> $APP/output/cron.log 2>&1   # 18:00 MVD

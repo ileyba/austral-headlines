@@ -1,0 +1,73 @@
+name: Austral headlines
+
+# GitHub cron is always UTC. Montevideo = UTC-3 (no DST):
+#   08:00 → 11:00 UTC, 10:00 → 13:00, 12:00 → 15:00, 15:00 → 18:00, 18:00 → 21:00
+# Weekday filter 1-5 is evaluated in UTC, which matches Montevideo for these hours.
+on:
+  schedule:
+    - cron: "0 11 * * 1-5"
+    - cron: "0 13 * * 1-5"
+    - cron: "0 15 * * 1-5"
+    - cron: "0 18 * * 1-5"
+    - cron: "0 21 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Do not send Telegram/email"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: austral-headlines
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - name: Run digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          DELIVERY: ${{ vars.DELIVERY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          ARGS=""
+          # GitHub often starts scheduled jobs late; map the cron that fired to
+          # its slot so a delay never changes which window is used.
+          case "${{ github.event.schedule }}" in
+            "0 11 * * 1-5") ARGS="--slot 08:00" ;;
+            "0 13 * * 1-5") ARGS="--slot 10:00" ;;
+            "0 15 * * 1-5") ARGS="--slot 12:00" ;;
+            "0 18 * * 1-5") ARGS="--slot 15:00" ;;
+            "0 21 * * 1-5") ARGS="--slot 18:00" ;;
+            *) ARGS="--now" ;;
+          esac
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          python main.py $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: headlines-${{ github.run_id }}
+          path: output/*.md
+          if-no-files-found: ignore
+          retention-days: 30
