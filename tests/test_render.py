@@ -58,5 +58,5 @@ def test_no_watchlist_prompt_and_categories(settings):
     assert settings.raw["watchlist"] == []
     assert summ.WATCHLIST not in summ.categories(settings)
     prompt = summ.build_system(settings)
-    assert "Company news is out of scope" in prompt and "Watchlist company" not in prompt
+    assert "routine corporate news is out of scope" in prompt and "INCLUDE large energy and mining PROJECTS" in prompt and "Watchlist company" not in prompt
     assert "must NEVER be a company name or ticker" in prompt

@@ -64,9 +64,10 @@ jobs:
       - name: Show headlines on the run page
         if: always()
         run: |
-          f=$(ls -t output/*.md 2>/dev/null | head -1)
+          f=$(ls -t output/*.md 2>/dev/null | grep -v _candidates | head -1)
           if [ -n "$f" ]; then
-            { echo "## Austral headlines"; echo; sed 's/$/  /' "$f"; } >> "$GITHUB_STEP_SUMMARY"
+            { echo "## Austral headlines"; echo; sed 's/$/  /' "$f"; echo;
+              echo "_All verified candidates in the window are in the artifact (*_candidates.md)._"; } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No output file (see the 'Run digest' log)." >> "$GITHUB_STEP_SUMMARY"
           fi

@@ -107,12 +107,16 @@ def build_system(settings: Settings) -> str:
         other_companies = "individual companies outside the watchlist"
         bank_scope = "commodities, rates, macro, or a rating/target change on a watchlist company"
     else:
-        company_rule = """- Company news is out of scope (there is no company watchlist): deals, launches, investments,
-  contracts, earnings or management news about a specific company (YPF, Petrobras, Tesla, miners...)
-  are excluded even if a politician announces them. The only exception is an event that is itself
-  market-moving news for a covered category, e.g. a strike or force majeure that cuts supply at a
-  major copper mine or oil field, or a government decision on a sector-wide policy.
-- `topic` must NEVER be a company name or ticker; use the commodity, country or theme."""
+        company_rule = """- There is no company watchlist, so routine corporate news is out of scope: earnings, ratings,
+  price targets, management changes, product launches, and deals outside energy/mining (e.g. a Tesla
+  or bank deal), even if a politician announces them.
+- INCLUDE large energy and mining PROJECTS and REGULATORY decisions even when a company is named:
+  approvals (e.g. RIGI in Argentina, licences, environmental permits), final investment decisions,
+  major new capex, new LNG/pipeline/mine/oil-field projects, auctions and concessions, export
+  permits, and supply disruptions (strikes, force majeure, accidents that cut output). Classify them
+  under "Energy & critical minerals" or "Metals & commodities" (or LatAm for country-wide policy).
+- `topic` must NEVER be a company name or ticker; use the commodity, country or theme
+  (e.g. "Argentina LNG", "Vaca Muerta", "Chile lithium", "Copper supply")."""
         other_companies = "individual company news, earnings, ratings and price targets"
         bank_scope = "commodities, rates or macro – not on individual companies"
     topics_block = "\n".join(f'- {t["name"]}: {t["query"]}' for t in settings.raw["topics"])
@@ -143,8 +147,10 @@ Scope rules (most important):
   another category (e.g. OPEC+ decision, China export controls on rare earths, ECB rate decision).
 
 Selection rules:
-- Material and new only. Exclude opinion, explainers, previews, generic analyst commentary, routine
-  price recaps ("gold rises 0.5%").
+- Be inclusive within scope: if an in-scope article reports a concrete new fact (a decision, data
+  release, statement, policy, project, disruption or notable market move in LatAm FX/bonds/country
+  risk), include it, ranking lesser items lower. Exclude only opinion, explainers, previews,
+  generic analyst commentary and routine commodity price recaps ("gold rises 0.5%").
 - Gold, silver, copper: never a price move by itself; report the driver (policy, supply, demand,
   central banks) when there is material news.
 {company_rule}
@@ -168,7 +174,7 @@ Writing rules (English only):
 - `title_en`: the article's headline rendered in natural English (translated if needed), max ~14 words.
 - `importance`: 1-100, higher = more market-moving.
 - Return at most {settings.raw.get("max_headlines", 15)} headlines. Returning an empty list is correct
-  when nothing is material and new.
+  only when no candidate reports a new in-scope fact.
 """
 
 

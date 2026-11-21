@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from .config import Settings, load_settings
-from .delivery import deliver, save
+from .delivery import deliver, save, save_candidates
 from .fetchers.page_meta import FetchError, verify_page
 from .fetchers.rss import fetch_feeds
 from .fetchers.sitemap import fetch_sitemaps
@@ -175,6 +175,7 @@ def run(args) -> int:
     print(text)
     path = save(text, window, settings.output_dir)
     log.info("saved %s", path)
+    log.info("saved %s", save_candidates(cands, window, settings.output_dir))
     errors += deliver(text, window, args.dry_run)
     if not args.no_llm:
         from .llm import usage_summary

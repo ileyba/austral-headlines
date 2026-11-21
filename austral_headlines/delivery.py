@@ -24,6 +24,17 @@ def save(text: str, window: RunWindow, out_dir: Path) -> Path:
     return path
 
 
+def save_candidates(cands, window: RunWindow, out_dir: Path) -> Path:
+    """Audit file: every verified candidate in the window, so you can see what was left out."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"{window.now_local:%Y-%m-%d_%H%M}_candidates.md"
+    lines = [f"<!-- {window.describe()} -->", f"# {len(cands)} candidates in window", ""]
+    for c in cands:
+        lines.append(f"- {c.published_utc:%H:%M UTC} – {c.source_tag} – [{c.title}]({c.url})")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def _telegram(text: str, subject: str) -> None:
     token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat:
