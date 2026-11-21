@@ -129,9 +129,9 @@ Todo está en `config.yaml`:
 | AP | sin RSS público → solo búsqueda web |
 | MARKETWATCH | `feeds.content.dowjones.io/public/rss/mw_{topstories,realtimeheadlines,marketpulse}` |
 | BBGLINEA | `bloomberglinea.com` y `bloomberglinea.com.br` `/arc/outboundfeeds/rss/` |
-| KITCO | `kitco.com/news/rss` |
+| KITCO | sin RSS verificado → solo búsqueda web |
 | NORTHERNMINER | `northernminer.com/feed/` |
-| MININGWEEKLY | `miningweekly.com/page/rss` |
+| MININGWEEKLY | sin RSS verificado → solo búsqueda web |
 | RIGZONE | `rigzone.com/news/rss/rigzone_latest.aspx` |
 | CRONISTA | `cronista.com/arc/outboundfeeds/rss/` |
 | LANACION | `lanacion.com.ar/arc/outboundfeeds/rss/category/economia/` |

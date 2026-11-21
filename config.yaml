@@ -293,8 +293,7 @@ sources:
     name: Kitco News
     domains: [kitco.com]
     priority: 8
-    feeds:
-      - https://www.kitco.com/news/rss
+    # RSS not found yet (old URL returned no items) – covered by web search only
   - tag: NORTHERNMINER
     name: The Northern Miner
     domains: [northernminer.com]
@@ -305,8 +304,7 @@ sources:
     name: Mining Weekly
     domains: [miningweekly.com]
     priority: 9
-    feeds:
-      - https://www.miningweekly.com/page/rss
+    # RSS not found yet (old URL returned 404) – covered by web search only
   - tag: RIGZONE
     name: Rigzone
     domains: [rigzone.com]
