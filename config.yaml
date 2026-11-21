@@ -32,6 +32,8 @@ search:
   tool_type: web_search_20260209   # use web_search_20250305 for older models
   # Search results are only accepted after the page metadata confirms a timestamp.
   max_page_checks: 60
+  # Watchlist companies are searched in groups of this size (one search call each).
+  watchlist_group_size: 5
   # Domains Anthropic's web search cannot access (the API rejects the whole
   # request if they are listed). They are still covered via RSS. If the API
   # reports others, they are dropped automatically for that run.
@@ -63,6 +65,13 @@ watchlist:
   - {ticker: YPF,  name: "YPF"}
   - {ticker: PAM,  name: "Pampa Energía"}
   - {ticker: VIST, name: "Vista Energy"}
+  - {ticker: BHP,  name: "BHP"}
+  - {ticker: SQM,  name: "SQM (Sociedad Química y Minera)"}
+  - {ticker: ALB,  name: "Albemarle"}
+  - {ticker: PAAS, name: "Pan American Silver"}
+  - {ticker: TGS,  name: "Transportadora de Gas del Sur"}
+  - {ticker: CCJ,  name: "Cameco"}
+  - {ticker: MP,   name: "MP Materials"}
 
 # Investing.com items are kept only if they name one of these banks.
 investing_banks:
@@ -258,6 +267,108 @@ sources:
       - https://www.investing.com/rss/news_11.rss
       - https://www.investing.com/rss/news_95.rss
       - https://www.investing.com/rss/news_25.rss
+  # --- Added sources (feeds are best-effort; failures are logged and skipped) ---
+  - tag: AP
+    name: AP News
+    domains: [apnews.com]
+    priority: 2
+  - tag: MARKETWATCH
+    name: MarketWatch
+    domains: [marketwatch.com]
+    priority: 6
+    feeds:
+      - https://feeds.content.dowjones.io/public/rss/mw_topstories
+      - https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines
+      - https://feeds.content.dowjones.io/public/rss/mw_marketpulse
+  - tag: BBGLINEA
+    name: Bloomberg Línea
+    domains: [bloomberglinea.com, bloomberglinea.com.br]
+    priority: 7
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.bloomberglinea.com/arc/outboundfeeds/rss/?outputType=xml
+      - https://www.bloomberglinea.com.br/arc/outboundfeeds/rss/?outputType=xml
+  - tag: KITCO
+    name: Kitco News
+    domains: [kitco.com]
+    priority: 8
+    feeds:
+      - https://www.kitco.com/news/rss
+  - tag: NORTHERNMINER
+    name: The Northern Miner
+    domains: [northernminer.com]
+    priority: 8
+    feeds:
+      - https://www.northernminer.com/feed/
+  - tag: MININGWEEKLY
+    name: Mining Weekly
+    domains: [miningweekly.com]
+    priority: 9
+    feeds:
+      - https://www.miningweekly.com/page/rss
+  - tag: RIGZONE
+    name: Rigzone
+    domains: [rigzone.com]
+    priority: 9
+    feeds:
+      - https://www.rigzone.com/news/rss/rigzone_latest.aspx
+  - tag: CRONISTA
+    name: El Cronista
+    domains: [cronista.com]
+    priority: 16
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.cronista.com/arc/outboundfeeds/rss/?outputType=xml
+  - tag: LANACION
+    name: La Nación
+    domains: [lanacion.com.ar]
+    priority: 16
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/economia/?outputType=xml
+  - tag: CLARIN
+    name: Clarín (iEco)
+    domains: [clarin.com]
+    priority: 17
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.clarin.com/rss/economia/
+  - tag: RIONEGRO
+    name: Río Negro
+    domains: [rionegro.com.ar]
+    priority: 18
+    language: es
+    naive_tz: America/Argentina/Buenos_Aires
+    feeds:
+      - https://www.rionegro.com.ar/feed/
+  - tag: INFOMONEY
+    name: InfoMoney
+    domains: [infomoney.com.br]
+    priority: 14
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://www.infomoney.com.br/feed/
+  - tag: BRAZILJOURNAL
+    name: Brazil Journal
+    domains: [braziljournal.com]
+    priority: 14
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://braziljournal.com/feed/
+  - tag: ESTADAO
+    name: Estadão
+    domains: [estadao.com.br]
+    priority: 14
+    language: pt
+    naive_tz: America/Sao_Paulo
+    feeds:
+      - https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/economia/
   - tag: ZH
     name: ZeroHedge
     domains: [zerohedge.com]

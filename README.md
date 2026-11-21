@@ -126,6 +126,20 @@ Todo está en `config.yaml`:
 | ECONOJOURNAL | `econojournal.com.ar/feed/` |
 | SHALE24 | `shale24.com.ar/feed/` |
 | LMNEUQUEN | `lmneuquen.com/rss/ultimas-noticias.xml` |
+| AP | sin RSS público → solo búsqueda web |
+| MARKETWATCH | `feeds.content.dowjones.io/public/rss/mw_{topstories,realtimeheadlines,marketpulse}` |
+| BBGLINEA | `bloomberglinea.com` y `bloomberglinea.com.br` `/arc/outboundfeeds/rss/` |
+| KITCO | `kitco.com/news/rss` |
+| NORTHERNMINER | `northernminer.com/feed/` |
+| MININGWEEKLY | `miningweekly.com/page/rss` |
+| RIGZONE | `rigzone.com/news/rss/rigzone_latest.aspx` |
+| CRONISTA | `cronista.com/arc/outboundfeeds/rss/` |
+| LANACION | `lanacion.com.ar/arc/outboundfeeds/rss/category/economia/` |
+| CLARIN | `clarin.com/rss/economia/` |
+| RIONEGRO | `rionegro.com.ar/feed/` |
+| INFOMONEY | `infomoney.com.br/feed/` |
+| BRAZILJOURNAL | `braziljournal.com/feed/` |
+| ESTADAO | `estadao.com.br/arc/outboundfeeds/feeds/rss/sections/economia/` |
 
 Los medios cambian o cierran sus feeds sin aviso. Si un feed falla, aparece como `WARNING feed TAG …` en el log, la búsqueda web sigue cubriendo esa fuente y alcanza con corregir el URL en `config.yaml`.
 

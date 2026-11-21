@@ -68,3 +68,24 @@ def test_blocked_domains_parsed_from_api_error():
            "['ft.com', 'reuters.com', 'wsj.com']. Read more: https://support.anthropic.com/\"}")
     assert _blocked_domains(msg) == {"ft.com", "reuters.com", "wsj.com"}
     assert _blocked_domains("API error 500: overloaded") == set()
+
+
+def test_new_sources_allowed(settings):
+    for url, tag in [("https://www.bloomberglinea.com/mercados/x", "BBGLINEA"),
+                     ("https://www.bloomberglinea.com.br/x", "BBGLINEA"),
+                     ("https://www.marketwatch.com/story/x", "MARKETWATCH"),
+                     ("https://apnews.com/article/x", "AP"),
+                     ("https://www.infomoney.com.br/mercados/x", "INFOMONEY"),
+                     ("https://www.rionegro.com.ar/energia/x", "RIONEGRO")]:
+        assert match_source(url, settings.sources).tag == tag
+    # Bloomberg (BBG) must not swallow Bloomberg Línea and vice versa
+    assert match_source("https://www.bloomberg.com/news/x", settings.sources).tag == "BBG"
+    assert match_source("https://www.df.cl/x", settings.sources) is None   # Chile sites not added
+
+
+def test_watchlist_search_groups(settings):
+    from austral_headlines.fetchers.websearch import build_queries
+
+    groups = [q for q in build_queries(settings) if q[0].startswith("Watchlist")]
+    assert len(groups) == 4                      # 17 tickers in groups of 5
+    assert len(settings.allowed_domains) <= 64   # allowed_domains API limit

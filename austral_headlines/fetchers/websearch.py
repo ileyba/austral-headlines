@@ -39,10 +39,9 @@ def _blocked_domains(message: str) -> set[str]:
 def build_queries(settings: Settings) -> list[tuple[str, str]]:
     queries = [(t["name"], t["query"]) for t in settings.raw["topics"]]
     wl = settings.raw["watchlist"]
-    half = (len(wl) + 1) // 2
-    for i, chunk in enumerate((wl[:half], wl[half:]), start=1):
-        if not chunk:
-            continue
+    size = max(1, int(settings.raw["search"].get("watchlist_group_size", 5)))
+    for i, start in enumerate(range(0, len(wl), size), start=1):
+        chunk = wl[start:start + size]
         names = "; ".join(f'{c["name"]} ({c["ticker"]})' for c in chunk)
         queries.append((
             f"Watchlist {i}",
