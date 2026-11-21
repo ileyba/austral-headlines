@@ -19,7 +19,7 @@ slot_tolerance_minutes: 60
 future_skew_minutes: 5
 
 max_headlines: 15
-max_candidates_for_llm: 150
+max_candidates_for_llm: 300
 
 http:
   timeout_seconds: 12
