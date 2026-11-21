@@ -164,6 +164,10 @@ def run(args) -> int:
     path = save(text, window, settings.output_dir)
     log.info("saved %s", path)
     errors += deliver(text, window, args.dry_run)
+    if not args.no_llm:
+        from .llm import usage_summary
+
+        log.info(usage_summary(settings.model))
     if errors:
         log.info("%d non-fatal source/delivery errors (see warnings above)", len(errors))
     return 0
