@@ -137,27 +137,35 @@ def run(args) -> int:
             f"{c.published_utc:%H:%M UTC} – {c.source_tag} – [{c.title}]({c.url})" for c in cands
         ) or NO_NEWS
     else:
-        from .summarizer import select_headlines
+        from . import summarizer as summ
 
         try:
-            sel = select_headlines(settings, cands, window)
+            sel = summ.select_headlines(settings, cands, window)
         except LLMError as exc:
             log.error("summarizer failed: %s", exc)
             for e in errors:
                 log.warning("source error: %s", e)
             return 2
         by_id = {c.id: c for c in cands}
-        picks = {p.id: p for p in sel.headlines if p.id in by_id}
+        allowed_cats = set(summ.categories(settings)) - {summ.OUT_OF_SCOPE}
+        for p in sel.headlines:
+            if p.category not in allowed_cats:
+                log.info("drop (out of scope): %s", by_id[p.id].title if p.id in by_id else p.id)
+        picks = {p.id: p for p in sel.headlines if p.id in by_id and p.category in allowed_cats}
         dup_map = {d.id: d.duplicate_of for d in sel.duplicates
                    if d.id in picks or d.duplicate_of in picks}
         drop = resolve_duplicate_links({i: by_id[i] for i in set(picks) | set(dup_map) |
                                         set(dup_map.values()) if i in by_id}, dup_map)
+        tickers = {w["ticker"].upper() for w in settings.raw["watchlist"]}
         headlines = []
         for pid, p in picks.items():
             if pid in drop:
                 continue
             c = by_id[pid]
             if c.source_tag == "INVESTING" and not p.bank.strip():
+                continue
+            if p.category == summ.WATCHLIST and p.topic.strip().upper() not in tickers:
+                log.info("drop (watchlist item without a watchlist ticker): %s", c.title)
                 continue
             headlines.append(Headline(topic=p.topic, summary=p.summary, title_en=p.title_en,
                                       importance=p.importance, candidate=c,

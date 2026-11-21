@@ -21,6 +21,8 @@ def _cands():
         c("Mirror copy", "https://finance.yahoo.com/a", 10),                   # not allowed
         c("Goldman Sachs lifts gold forecast to $5,000", "https://www.investing.com/a", 30),
         c("Gold edges higher", "https://www.investing.com/b", 30),             # no bank → dropped
+        c("Peru rattled by 6.7-magnitude quake", "https://www.bloomberg.com/quake", 25),
+        c("Nvidia plunges 14%", "https://www.cnbc.com/nvda", 25),
     ]
 
 
@@ -36,25 +38,32 @@ def test_pipeline(monkeypatch, tmp_path, settings, capsys):
         ids = {c.url: c.id for c in cands}
         return Selection(
             headlines=[
-                Pick(id=ids["https://www.reuters.com/a"], topic="FCX",
+                Pick(id=ids["https://www.reuters.com/a"], category="Watchlist company", scope_evidence="FCX guidance", topic="FCX",
                      summary="Cuts 2027 copper guidance after Grasberg outage", title_en="Freeport cuts guidance",
                      importance=90, unconfirmed=False, bank=""),
-                Pick(id=ids["https://www.infobae.com/a"], topic="FCX", summary="dup",
+                Pick(id=ids["https://www.infobae.com/a"], category="Watchlist company", scope_evidence="x", topic="FCX", summary="dup",
                      title_en="dup", importance=80, unconfirmed=False, bank=""),
-                Pick(id=ids["https://www.econojournal.com.ar/a"], topic="YPF",
+                Pick(id=ids["https://www.econojournal.com.ar/a"], category="Watchlist company", scope_evidence="YPF capex", topic="YPF",
                      summary="Board approves $2bn Vaca Muerta investment", title_en="YPF approves $2bn Vaca Muerta spend",
                      importance=70, unconfirmed=False, bank=""),
-                Pick(id=ids["https://www.investing.com/a"], topic="Gold",
+                Pick(id=ids["https://www.investing.com/a"], category="Metals & commodities", scope_evidence="gold forecast", topic="Gold",
                      summary="Goldman raises gold forecast on central-bank buying",
                      title_en="Goldman lifts gold forecast", importance=60, unconfirmed=False,
                      bank="Goldman Sachs"),
-                Pick(id="c999", topic="X", summary="hallucinated id", title_en="x", importance=99,
+                Pick(id="c999", category="Macro & Fed", scope_evidence="x", topic="X", summary="hallucinated id", title_en="x", importance=99,
                      unconfirmed=False, bank=""),
+                Pick(id=ids["https://www.bloomberg.com/quake"], category="Out of scope",
+                     scope_evidence="earthquake, no mine impact reported", topic="Peru",
+                     summary="Quake in Peru", title_en="Peru quake", importance=95,
+                     unconfirmed=False, bank=""),
+                Pick(id=ids["https://www.cnbc.com/nvda"], category="Watchlist company",
+                     scope_evidence="Nvidia", topic="NVDA", summary="Nvidia falls",
+                     title_en="Nvidia falls", importance=95, unconfirmed=False, bank=""),
             ],
             duplicates=[Dup(id=ids["https://www.infobae.com/a"], duplicate_of=ids["https://www.reuters.com/a"])],
         )
 
-    monkeypatch.setattr(summ, "select_headlines", fake_select)
+    monkeypatch.setattr(summ, "select_headlines", fake_select)  # noqa
     rc = m.run(m.parse_args(["--now", "--dry-run", "--no-search", "--at", NOW.isoformat()]))
     assert rc == 0
     out = capsys.readouterr().out.strip().splitlines()
@@ -66,6 +75,7 @@ def test_pipeline(monkeypatch, tmp_path, settings, capsys):
     assert out[1].startswith("**YPF** – ") and "– ECONOJOURNAL – " in out[1]
     assert "– INVESTING/GOLDMAN SACHS – " in out[2]
     assert not any("hallucinated" in line or "infobae" in line for line in out)
+    assert not any("Peru" in line or "Nvidia" in line for line in out)
     files = list(tmp_path.glob("2026-11-20_1000.md"))
     assert files and "**FCX**" in files[0].read_text()
 

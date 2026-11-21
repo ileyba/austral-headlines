@@ -18,8 +18,18 @@ from .window import RunWindow
 log = logging.getLogger(__name__)
 
 
+WATCHLIST = "Watchlist company"
+OUT_OF_SCOPE = "Out of scope"
+
+
+def categories(settings: Settings) -> list[str]:
+    return [t["name"] for t in settings.raw["topics"]] + [WATCHLIST, OUT_OF_SCOPE]
+
+
 class Pick(BaseModel):
     id: str
+    category: str
+    scope_evidence: str
     topic: str
     summary: str
     title_en: str
@@ -38,7 +48,16 @@ class Selection(BaseModel):
     duplicates: list[Dup]
 
 
-SCHEMA = {
+def build_schema(settings: Settings) -> dict:
+    schema = json.loads(json.dumps(_SCHEMA))
+    item = schema["properties"]["headlines"]["items"]
+    item["properties"]["category"] = {"type": "string", "enum": categories(settings)}
+    item["properties"]["scope_evidence"] = {"type": "string"}
+    item["required"] = ["id", "category", "scope_evidence"] + item["required"][1:]
+    return schema
+
+
+_SCHEMA = {
     "type": "object",
     "properties": {
         "headlines": {
@@ -75,7 +94,7 @@ SCHEMA = {
 
 def build_system(settings: Settings) -> str:
     tickers = ", ".join(f'{w["ticker"]} ({w["name"]})' for w in settings.raw["watchlist"])
-    topics = "; ".join(t["name"] for t in settings.raw["topics"])
+    topics_block = "\n".join(f'- {t["name"]}: {t["query"]}' for t in settings.raw["topics"])
     return f"""You are the breaking-news editor for Austral Research (@AustralRes_En), an English-language
 markets account focused on commodities, macro and Latin America.
 
@@ -83,12 +102,29 @@ You receive candidate articles that have ALREADY been verified as published insi
 time window by allowed outlets. Your job: pick only material, genuinely new, breaking news and write
 one short English headline line for each.
 
-Coverage: {topics}.
-Company watchlist: {tickers}.
+STRICT SCOPE – every headline must belong to exactly one of these categories:
+{topics_block}
+- {WATCHLIST}: {tickers}
+
+Scope rules (most important):
+- Set `category` to the category the ARTICLE ITSELF is about. If it does not clearly fit one, set
+  `category` to "{OUT_OF_SCOPE}" (it will be discarded).
+- `scope_evidence`: one short sentence stating what in the article (its title/summary, not your own
+  inference) puts it in that category.
+- No speculative links. A story is out of scope unless the article itself reports the covered angle.
+  Examples: an earthquake, storm or accident is out of scope unless the article reports damage or
+  disruption to mines, oil/gas output, ports or a watchlist company; "country X is a big copper
+  producer" is NOT enough.
+- Out of scope unless directly about a category: US/global stock-index moves and equity-market
+  recaps, individual companies outside the watchlist (tech, AI, pharma, banks, retail, autos...),
+  crypto, corporate legal cases, politics without an economic-policy/market angle, elections polls,
+  society, health, weather, sports, entertainment.
+- Countries: only Argentina, Brazil and Chile for LatAm; other countries only when the news fits
+  another category (e.g. OPEC+ decision, China export controls on rare earths, ECB rate decision).
 
 Selection rules:
 - Material and new only. Exclude opinion, explainers, previews, generic analyst commentary, routine
-  price recaps ("gold rises 0.5%"), lifestyle, sports, crime and anything outside coverage.
+  price recaps ("gold rises 0.5%").
 - Gold, silver, copper: never a price move by itself; report the driver (policy, supply, demand,
   central banks) when there is material news.
 - Watchlist companies: only material corporate news (results, guidance, production/reserves,
@@ -147,7 +183,8 @@ def select_headlines(settings: Settings, cands: list[Candidate], window: RunWind
         max_tokens=16000,
         system=build_system(settings),
         messages=[{"role": "user", "content": _payload(cands, window)}],
-        output_config={"effort": "medium", "format": {"type": "json_schema", "schema": SCHEMA}},
+        output_config={"effort": "medium", "format": {"type": "json_schema",
+                                                     "schema": build_schema(settings)}},
     )
     if resp.stop_reason == "refusal":
         raise LLMError("summarizer refused")
