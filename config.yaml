@@ -32,6 +32,13 @@ search:
   tool_type: web_search_20260209   # use web_search_20250305 for older models
   # Search results are only accepted after the page metadata confirms a timestamp.
   max_page_checks: 60
+  # Domains Anthropic's web search cannot access (the API rejects the whole
+  # request if they are listed). They are still covered via RSS. If the API
+  # reports others, they are dropped automatically for that run.
+  exclude_domains: [ft.com, reuters.com, wsj.com]
+
+# URLs containing any of these path fragments are never news articles.
+exclude_url_patterns: [/video/, /videos/, /podcast, /audio/, /live-tv, /quote/, /tag/]
 
 topics:
   - name: Energy & critical minerals

@@ -80,7 +80,8 @@ def collect(settings: Settings, window: RunWindow, use_search: bool,
     """Return (candidates, any_source_responded)."""
     feed_items = fetch_feeds(settings, errors) + fetch_sitemaps(settings, errors)
     responded = bool(feed_items)
-    feed_items = filter_domains(feed_items, settings.sources, log)
+    excl = settings.raw.get("exclude_url_patterns", [])
+    feed_items = filter_domains(feed_items, settings.sources, log, excl)
     log.info("feeds/sitemaps: %d items on allowed domains", len(feed_items))
 
     search_items: list[Candidate] = []
@@ -89,7 +90,7 @@ def collect(settings: Settings, window: RunWindow, use_search: bool,
 
         found = search_candidates(settings, window, errors)
         responded = responded or bool(found)
-        raw = filter_domains(found, settings.sources, log)
+        raw = filter_domains(found, settings.sources, log, excl)
         known = {normalize_url(c.url) for c in feed_items}
         search_items = _verify_search_candidates(settings, raw, known, errors)
         log.info("search: %d URLs on allowed domains, %d with verified timestamp",

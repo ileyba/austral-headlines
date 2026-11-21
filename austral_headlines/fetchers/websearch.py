@@ -28,6 +28,14 @@ SYSTEM = (
 )
 
 
+_BLOCKED_RE = re.compile(r"not accessible to our user agent: \[([^\]]*)\]")
+
+
+def _blocked_domains(message: str) -> set[str]:
+    m = _BLOCKED_RE.search(message)
+    return set(re.findall(r"'([^']+)'", m.group(1))) if m else set()
+
+
 def build_queries(settings: Settings) -> list[tuple[str, str]]:
     queries = [(t["name"], t["query"]) for t in settings.raw["topics"]]
     wl = settings.raw["watchlist"]
@@ -58,25 +66,37 @@ def _one_search(settings: Settings, name: str, query: str, window: RunWindow,
         "Only articles first published in that window are useful; older ones are useless. "
         "Spanish and Portuguese outlets are allowed sources too."
     )
-    tool = {
-        "type": s.get("tool_type", "web_search_20260209"),
-        "name": "web_search",
-        "max_uses": int(s.get("max_uses_per_query", 5)),
-        "allowed_domains": settings.allowed_domains,
-    }
-    try:
-        _, blocks = run_with_pause(
-            settings,
-            messages=[{"role": "user", "content": user}],
-            system=SYSTEM,
-            max_tokens=8000,
-            tools=[tool],
-            output_config={"effort": "low"},
-        )
-    except LLMError as exc:
-        msg = f"search '{name}': {exc}"
-        log.warning(msg)
-        errors.append(msg)
+    excluded = set(s.get("exclude_domains", []))
+    blocks = None
+    for _attempt in range(2):
+        tool = {
+            "type": s.get("tool_type", "web_search_20260209"),
+            "name": "web_search",
+            "max_uses": int(s.get("max_uses_per_query", 5)),
+            "allowed_domains": [d for d in settings.allowed_domains if d not in excluded],
+        }
+        try:
+            _, blocks = run_with_pause(
+                settings,
+                messages=[{"role": "user", "content": user}],
+                system=SYSTEM,
+                max_tokens=8000,
+                tools=[tool],
+                output_config={"effort": "low"},
+            )
+            break
+        except LLMError as exc:
+            blocked = _blocked_domains(str(exc))
+            if blocked and not blocked <= excluded:
+                log.warning("search '%s': web search cannot access %s – retrying without them. "
+                            "Add them to search.exclude_domains in config.yaml.", name, sorted(blocked))
+                excluded |= blocked
+                continue
+            msg = f"search '{name}': {exc}"
+            log.warning(msg)
+            errors.append(msg)
+            return []
+    if blocks is None:
         return []
 
     found: dict[str, Candidate] = {}

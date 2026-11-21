@@ -33,9 +33,15 @@ def match_source(url: str, sources: list[Source]) -> Source | None:
     return None
 
 
-def filter_domains(cands: list[Candidate], sources: list[Source], log=None) -> list[Candidate]:
+def filter_domains(cands: list[Candidate], sources: list[Source], log=None,
+                   exclude_patterns: list[str] | None = None) -> list[Candidate]:
     kept = []
     for c in cands:
+        path = urlparse(c.url).path.lower()
+        if exclude_patterns and any(p in path for p in exclude_patterns):
+            if log:
+                log.debug("drop (not an article): %s", c.url)
+            continue
         src = match_source(c.url, sources)
         if src is None:
             if log:

@@ -52,3 +52,19 @@ def test_investing_requires_bank(settings):
     ], settings.sources)
     out = filter_bank_calls(cands, settings.sources, settings.raw["investing_banks"])
     assert [c.url for c in out] == ["https://www.investing.com/news/a", "https://www.mining.com/b"]
+
+
+def test_video_and_non_article_urls_dropped(settings):
+    cands = [Candidate(title="v", url="https://www.bloomberg.com/news/videos/2026-11-21/x"),
+             Candidate(title="a", url="https://www.bloomberg.com/news/articles/2026-11-21/x")]
+    out = filter_domains(cands, settings.sources, exclude_patterns=settings.raw["exclude_url_patterns"])
+    assert [c.title for c in out] == ["a"]
+
+
+def test_blocked_domains_parsed_from_api_error():
+    from austral_headlines.fetchers.websearch import _blocked_domains
+
+    msg = ("API error 400: {'message': \"The following domains are not accessible to our user agent: "
+           "['ft.com', 'reuters.com', 'wsj.com']. Read more: https://support.anthropic.com/\"}")
+    assert _blocked_domains(msg) == {"ft.com", "reuters.com", "wsj.com"}
+    assert _blocked_domains("API error 500: overloaded") == set()
