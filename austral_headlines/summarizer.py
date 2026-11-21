@@ -107,9 +107,12 @@ def build_system(settings: Settings) -> str:
         other_companies = "individual companies outside the watchlist"
         bank_scope = "commodities, rates, macro, or a rating/target change on a watchlist company"
     else:
-        company_rule = """- Company news is out of scope (there is no company watchlist). The only exception is an event
-  that is itself market-moving news for a covered category, e.g. a strike or force majeure that cuts
-  supply at a major copper mine or oil field; then use that category and a commodity topic."""
+        company_rule = """- Company news is out of scope (there is no company watchlist): deals, launches, investments,
+  contracts, earnings or management news about a specific company (YPF, Petrobras, Tesla, miners...)
+  are excluded even if a politician announces them. The only exception is an event that is itself
+  market-moving news for a covered category, e.g. a strike or force majeure that cuts supply at a
+  major copper mine or oil field, or a government decision on a sector-wide policy.
+- `topic` must NEVER be a company name or ticker; use the commodity, country or theme."""
         other_companies = "individual company news, earnings, ratings and price targets"
         bank_scope = "commodities, rates or macro – not on individual companies"
     topics_block = "\n".join(f'- {t["name"]}: {t["query"]}' for t in settings.raw["topics"])
