@@ -29,6 +29,8 @@ def parse_args(argv=None):
                    help="run immediately using the nearest slot (skip schedule/weekday checks)")
     p.add_argument("--dry-run", action="store_true", help="do not send Telegram/email")
     p.add_argument("--slot", help="force a slot, e.g. 10:00")
+    p.add_argument("--hours", type=float,
+                   help="manual run: look back exactly this many hours from now (implies --now)")
     p.add_argument("--at", help="pretend current time is this ISO timestamp (testing)")
     p.add_argument("--no-search", action="store_true", help="feeds/sitemaps only, skip web search")
     p.add_argument("--no-llm", action="store_true",
@@ -101,10 +103,11 @@ def collect(settings: Settings, window: RunWindow, use_search: bool,
 def run(args) -> int:
     settings = load_settings(args.config)
     at = datetime.fromisoformat(args.at).astimezone(timezone.utc) if args.at else None
-    window = compute_window(settings.runs, settings.timezone, at=at, slot=args.slot)
+    window = compute_window(settings.runs, settings.timezone, at=at, slot=args.slot,
+                            hours=args.hours)
     log.info(window.describe())
 
-    if not args.now and not args.slot:
+    if not args.now and not args.slot and args.hours is None:
         if not is_business_day(window.now_local):
             log.info("not a business day in %s – nothing to do", settings.timezone)
             return 0

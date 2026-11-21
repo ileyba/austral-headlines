@@ -17,6 +17,9 @@ class RunWindow:
 
     def describe(self) -> str:
         fmt = "%Y-%m-%d %H:%M UTC"
+        if self.slot == "manual":
+            return (f"manual run | last {self.hours:g}h | "
+                    f"{self.start_utc.strftime(fmt)} → {self.end_utc.strftime(fmt)}")
         return (
             f"slot {self.slot} (Montevideo) | window {self.hours:g}h | "
             f"{self.start_utc.strftime(fmt)} → {self.end_utc.strftime(fmt)}"
@@ -48,6 +51,7 @@ def compute_window(
     tz: str = "America/Montevideo",
     at: datetime | None = None,
     slot: str | None = None,
+    hours: float | None = None,
 ) -> RunWindow:
     """Compute the strict look-back window.
 
@@ -58,6 +62,11 @@ def compute_window(
     """
     end = (at or now_utc()).astimezone(timezone.utc)
     local_now = end.astimezone(ZoneInfo(tz))
+    if hours is not None:  # manual run: simply the last N hours
+        if hours <= 0:
+            raise ValueError("hours must be positive")
+        return RunWindow(slot="manual", hours=hours, start_utc=end - timedelta(hours=hours),
+                         end_utc=end, now_local=local_now, minutes_from_slot=0.0)
     if slot is None:
         slot, diff = nearest_slot(local_now, runs)
     else:

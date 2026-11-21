@@ -79,3 +79,11 @@ def test_empty_env_vars_fall_back_to_defaults(monkeypatch):
     monkeypatch.setenv("OUTPUT_DIR", "")
     s = load_settings()
     assert s.model == DEFAULT_MODEL and s.fallbacks == "default" and s.output_dir.name == "output"
+
+
+def test_manual_hours_window():
+    w = compute_window(RUNS, at=utc("2026-11-20 16:40"), hours=8)
+    assert w.slot == "manual"
+    assert w.end_utc - w.start_utc == timedelta(hours=8)
+    with pytest.raises(ValueError):
+        compute_window(RUNS, at=utc("2026-11-20 16:40"), hours=0)

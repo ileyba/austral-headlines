@@ -67,10 +67,19 @@ Formato de cada línea:
 **FCX** – Cuts 2027 copper guidance after Grasberg outage – 12:40 UTC – RTRS – [Freeport cuts guidance](https://www.reuters.com/...)
 ```
 
-## Programación
+## Cómo correrlo (GitHub Actions, manual)
 
-- **cron (servidor propio):** ver `deploy/crontab.example`. Trae una versión con `CRON_TZ=America/Montevideo` y otra en UTC. Uruguay es UTC-3 todo el año.
-- **GitHub Actions:** `.github/workflows/headlines.yml` corre a las 11, 13, 15, 18 y 21 UTC de lunes a viernes. Como GitHub suele arrancar los jobs tarde, el workflow le pasa al programa la corrida que corresponde a cada cron (`--slot`). Configurar `ANTHROPIC_API_KEY` (y opcionalmente los secretos de Telegram o SMTP) en *Settings → Secrets and variables → Actions*. Cada resultado queda como artefacto del run. También se puede lanzar a mano con *Run workflow* (`dry_run` activado por defecto).
+1. En el repo: *Actions → Austral headlines → Run workflow*.
+2. Elegir **hours** (cuántas horas hacia atrás: 2, 3, 5, 8, 12 o 24) y si usar **web_search**.
+   - Con búsqueda web: ~US$0,80 por corrida.
+   - Sin búsqueda web (solo RSS): ~US$0,05 por corrida.
+3. Al terminar (~1–2 min), los headlines aparecen en la página del run (*Summary*) y quedan como artefacto descargable durante 90 días.
+
+No se envía nada a ningún lado. Requiere el secreto `ANTHROPIC_API_KEY` en *Settings → Secrets and variables → Actions*.
+
+Desde la terminal, el equivalente es `python main.py --hours 3 --dry-run` (agregar `--no-search` para solo RSS).
+
+**Volver a programarlo:** el workflow trae comentado el bloque `schedule` (lunes a viernes 08, 10, 12, 15 y 18 h de Montevideo, en UTC); basta con descomentarlo. Para un servidor propio hay un ejemplo de cron en `deploy/crontab.example`.
 
 ## Agregar o quitar tickers, temas y fuentes
 
