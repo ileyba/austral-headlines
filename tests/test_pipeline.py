@@ -27,6 +27,11 @@ def _cands():
 
 
 def test_pipeline(monkeypatch, tmp_path, settings, capsys):
+    import copy
+
+    settings = copy.deepcopy(settings)
+    settings.raw["watchlist"] = [{"ticker": "FCX", "name": "Freeport-McMoRan"},
+                                 {"ticker": "YPF", "name": "YPF"}]
     settings.output_dir = tmp_path
     monkeypatch.setattr(m, "load_settings", lambda _=None: settings)
     monkeypatch.setattr(m, "fetch_feeds", lambda s, e: _cands())

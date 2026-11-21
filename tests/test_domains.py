@@ -86,6 +86,12 @@ def test_new_sources_allowed(settings):
 def test_watchlist_search_groups(settings):
     from austral_headlines.fetchers.websearch import build_queries
 
+    import copy
+
     groups = [q for q in build_queries(settings) if q[0].startswith("Watchlist")]
-    assert len(groups) == 4                      # 17 tickers in groups of 5
+    assert len(groups) == len(range(0, len(settings.raw["watchlist"]), 5))
+    s2 = copy.deepcopy(settings)
+    s2.raw["watchlist"] = [{"ticker": f"T{i}", "name": f"Co {i}"} for i in range(12)]
+    assert len([q for q in build_queries(s2) if q[0].startswith("Watchlist")]) == 3
+
     assert len(settings.allowed_domains) <= 64   # allowed_domains API limit

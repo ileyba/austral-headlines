@@ -12,9 +12,9 @@ on:
         options: ["2", "3", "5", "8", "12", "24"]
         default: "3"
       web_search:
-        description: "Use Claude web search (~US$0.80/run). Off = RSS only (~US$0.05/run)"
+        description: "Also use Claude web search (~US$0.80/run extra). Off = RSS only (~US$0.03/run)"
         type: boolean
-        default: true
+        default: false
 
   # To bring back automatic runs (Montevideo = UTC-3, Mon-Fri 08/10/12/15/18 h),
   # uncomment this block:
@@ -59,7 +59,7 @@ jobs:
             "0 18 * * 1-5") ARGS="--dry-run --slot 15:00" ;;
             "0 21 * * 1-5") ARGS="--dry-run --slot 18:00" ;;
           esac
-          if [ "$WEB_SEARCH" = "false" ]; then ARGS="$ARGS --no-search"; fi
+          if [ "$WEB_SEARCH" != "true" ]; then ARGS="$ARGS --no-search"; fi
           python main.py $ARGS
       - name: Show headlines on the run page
         if: always()

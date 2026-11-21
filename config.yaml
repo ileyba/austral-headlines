@@ -54,24 +54,10 @@ topics:
   - name: Supply chains & geopolitics
     query: "tariffs, sanctions, trade deals, shipping and logistics disruptions, export controls, wars and conflicts affecting markets"
 
-watchlist:
-  - {ticker: FCX,  name: "Freeport-McMoRan"}
-  - {ticker: SCCO, name: "Southern Copper"}
-  - {ticker: AEM,  name: "Agnico Eagle Mines"}
-  - {ticker: NEM,  name: "Newmont"}
-  - {ticker: B,    name: "Barrick Mining"}
-  - {ticker: VALE, name: "Vale"}
-  - {ticker: PBR,  name: "Petrobras"}
-  - {ticker: YPF,  name: "YPF"}
-  - {ticker: PAM,  name: "Pampa Energía"}
-  - {ticker: VIST, name: "Vista Energy"}
-  - {ticker: BHP,  name: "BHP"}
-  - {ticker: SQM,  name: "SQM (Sociedad Química y Minera)"}
-  - {ticker: ALB,  name: "Albemarle"}
-  - {ticker: PAAS, name: "Pan American Silver"}
-  - {ticker: TGS,  name: "Transportadora de Gas del Sur"}
-  - {ticker: CCJ,  name: "Cameco"}
-  - {ticker: MP,   name: "MP Materials"}
+# Company watchlist (empty = no company news). To add one, e.g.:
+#   watchlist:
+#     - {ticker: FCX, name: "Freeport-McMoRan"}
+watchlist: []
 
 # Investing.com items are kept only if they name one of these banks.
 investing_banks:

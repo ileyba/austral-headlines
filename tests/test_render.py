@@ -50,3 +50,12 @@ def test_link_text_sanitized():
     x = h("FT", "https://www.ft.com/content/a")
     x.title_en = "Oil [update] jumps"
     assert "[Oil (update) jumps](https://www.ft.com/content/a)" in render_line(x)
+
+
+def test_no_watchlist_prompt_and_categories(settings):
+    from austral_headlines import summarizer as summ
+
+    assert settings.raw["watchlist"] == []
+    assert summ.WATCHLIST not in summ.categories(settings)
+    prompt = summ.build_system(settings)
+    assert "Company news is out of scope" in prompt and "Watchlist company" not in prompt

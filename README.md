@@ -71,8 +71,8 @@ Formato de cada línea:
 
 1. En el repo: *Actions → Austral headlines → Run workflow*.
 2. Elegir **hours** (cuántas horas hacia atrás: 2, 3, 5, 8, 12 o 24) y si usar **web_search**.
-   - Con búsqueda web: ~US$0,80 por corrida.
-   - Sin búsqueda web (solo RSS): ~US$0,05 por corrida.
+   - Sin búsqueda web (por defecto, solo RSS): ~US$0,03 por corrida.
+   - Con búsqueda web: ~US$0,80 más por corrida.
 3. Al terminar (~1–2 min), los headlines aparecen en la página del run (*Summary*) y quedan como artefacto descargable durante 90 días.
 
 No se envía nada a ningún lado. Requiere el secreto `ANTHROPIC_API_KEY` en *Settings → Secrets and variables → Actions*.
@@ -81,11 +81,11 @@ Desde la terminal, el equivalente es `python main.py --hours 3 --dry-run` (agreg
 
 **Volver a programarlo:** el workflow trae comentado el bloque `schedule` (lunes a viernes 08, 10, 12, 15 y 18 h de Montevideo, en UTC); basta con descomentarlo. Para un servidor propio hay un ejemplo de cron en `deploy/crontab.example`.
 
-## Agregar o quitar tickers, temas y fuentes
+## Agregar o quitar temas, fuentes y empresas
 
 Todo está en `config.yaml`:
 
-- **Ticker:** agregar `- {ticker: XYZ, name: "Company Name"}` en `watchlist`. Para quitarlo, borrar la línea. El prompt y las búsquedas se arman a partir de esta lista.
+- **Empresas:** hoy la `watchlist` está vacía, así que no se incluyen noticias corporativas. Para seguir una empresa, agregar `- {ticker: XYZ, name: "Company Name"}` en `watchlist` (reemplazando `[]`). El prompt y las búsquedas se arman a partir de esta lista.
 - **Tema:** agregar un ítem en `topics` con `name` y `query`. Cada tema es una búsqueda web por corrida.
 - **Fuente:** agregar un bloque en `sources`:
   ```yaml
@@ -145,4 +145,4 @@ Los medios cambian o cierran sus feeds sin aviso. Si un feed falla, aparece como
 
 ## Costo
 
-Cada corrida hace unas 7 búsquedas web (5 temas + 2 grupos de tickers, hasta 5 búsquedas cada una) y una llamada de clasificación. Para abaratar se puede usar `--no-search` en algunas corridas o bajar `search.max_uses_per_query`.
+Por defecto el workflow usa **solo RSS**: una llamada a Claude por corrida, unos US$0,03. Activando `web_search` se suman 5 llamadas de búsqueda (una por tema, hasta 5 búsquedas cada una), unos US$0,80 más por corrida.

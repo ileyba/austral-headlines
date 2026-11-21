@@ -23,7 +23,8 @@ OUT_OF_SCOPE = "Out of scope"
 
 
 def categories(settings: Settings) -> list[str]:
-    return [t["name"] for t in settings.raw["topics"]] + [WATCHLIST, OUT_OF_SCOPE]
+    wl = [WATCHLIST] if settings.raw.get("watchlist") else []
+    return [t["name"] for t in settings.raw["topics"]] + wl + [OUT_OF_SCOPE]
 
 
 class Pick(BaseModel):
@@ -93,7 +94,24 @@ _SCHEMA = {
 
 
 def build_system(settings: Settings) -> str:
-    tickers = ", ".join(f'{w["ticker"]} ({w["name"]})' for w in settings.raw["watchlist"])
+    watchlist = settings.raw.get("watchlist") or []
+    tickers = ", ".join(f'{w["ticker"]} ({w["name"]})' for w in watchlist)
+    wl_category = f"\n- {WATCHLIST}: {tickers}" if watchlist else ""
+    if watchlist:
+        company_rule = """- Watchlist companies: only material corporate news (results, guidance, production/reserves,
+  strikes/accidents/force majeure, M&A/asset sales, project approvals/capex, regulatory/legal/tax
+  rulings, major contracts, management changes, dividends/buybacks, financing/debt, bank rating or
+  price-target changes). For these, `topic` is EXACTLY the ticker (e.g. "FCX", "YPF").
+  Company news weighs the same as macro/commodities; results, guidance, M&A and operational
+  disruptions rank high."""
+        other_companies = "individual companies outside the watchlist"
+        bank_scope = "commodities, rates, macro, or a rating/target change on a watchlist company"
+    else:
+        company_rule = """- Company news is out of scope (there is no company watchlist). The only exception is an event
+  that is itself market-moving news for a covered category, e.g. a strike or force majeure that cuts
+  supply at a major copper mine or oil field; then use that category and a commodity topic."""
+        other_companies = "individual company news, earnings, ratings and price targets"
+        bank_scope = "commodities, rates or macro – not on individual companies"
     topics_block = "\n".join(f'- {t["name"]}: {t["query"]}' for t in settings.raw["topics"])
     return f"""You are the breaking-news editor for Austral Research (@AustralRes_En), an English-language
 markets account focused on commodities, macro and Latin America.
@@ -103,8 +121,7 @@ time window by allowed outlets. Your job: pick only material, genuinely new, bre
 one short English headline line for each.
 
 STRICT SCOPE – every headline must belong to exactly one of these categories:
-{topics_block}
-- {WATCHLIST}: {tickers}
+{topics_block}{wl_category}
 
 Scope rules (most important):
 - Set `category` to the category the ARTICLE ITSELF is about. If it does not clearly fit one, set
@@ -113,10 +130,10 @@ Scope rules (most important):
   inference) puts it in that category.
 - No speculative links. A story is out of scope unless the article itself reports the covered angle.
   Examples: an earthquake, storm or accident is out of scope unless the article reports damage or
-  disruption to mines, oil/gas output, ports or a watchlist company; "country X is a big copper
+  disruption to mines, oil/gas output or ports; "country X is a big copper
   producer" is NOT enough.
 - Out of scope unless directly about a category: US/global stock-index moves and equity-market
-  recaps, individual companies outside the watchlist (tech, AI, pharma, banks, retail, autos...),
+  recaps, {other_companies} (tech, AI, pharma, banks, retail, autos...),
   crypto, corporate legal cases, politics without an economic-policy/market angle, elections polls,
   society, health, weather, sports, entertainment.
 - Countries: only Argentina, Brazil and Chile for LatAm; other countries only when the news fits
@@ -127,14 +144,9 @@ Selection rules:
   price recaps ("gold rises 0.5%").
 - Gold, silver, copper: never a price move by itself; report the driver (policy, supply, demand,
   central banks) when there is material news.
-- Watchlist companies: only material corporate news (results, guidance, production/reserves,
-  strikes/accidents/force majeure, M&A/asset sales, project approvals/capex, regulatory/legal/tax
-  rulings, major contracts, management changes, dividends/buybacks, financing/debt, bank rating or
-  price-target changes). For these, `topic` is EXACTLY the ticker (e.g. "FCX", "YPF").
-  Company news weighs the same as macro/commodities; results, guidance, M&A and operational
-  disruptions rank high.
+{company_rule}
 - Investing.com (tag INVESTING): include only if it reports a named bank's note/call (forecast change on
-  commodities, rates, macro, or a rating/target change on a watchlist company). Put the bank name in
+  {bank_scope}). Put the bank name in
   `bank` (e.g. "Goldman Sachs"). For every other item `bank` is "".
 - ZeroHedge (tag ZH): set `unconfirmed` true when the claim is not attributed to an official/primary
   source. For every other source `unconfirmed` is false.
